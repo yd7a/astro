@@ -1,0 +1,36 @@
+---
+import Datetime from "./Datetime.astro";
+
+type Props = {
+  variant?: "h2" | "h3";
+  title: string;
+  excerpt?: string | null;
+  pubDatetime?: Date | string | null;
+  modDatetime?: Date | string | null;
+  href: string;
+};
+
+const { variant: Heading = "h2", title, excerpt, pubDatetime, modDatetime, href } = Astro.props;
+---
+
+<li class="my-6" style="padding:0px 4px;">
+  <div class="flex flex-col sm:flex-row-reverse sm:items-start sm:gap-4">
+    {pubDatetime && (
+      <span class="-mt-4 self-end sm:mt-0 sm:self-start" style="flex:0 0 auto; white-space:nowrap; color:gray; padding-top:0.15em;">
+        <Datetime pubDatetime={pubDatetime} modDatetime={modDatetime} />
+      </span>
+    )}
+    <a
+      style="font-weight:400;"
+      href={href}
+      class:list={[
+      "text-lg font-medium text-accent sm:flex-1 sm:min-w-0",
+      "hover:opacity-80",
+      "focus-visible:no-underline focus-visible:underline-offset-0",
+]}
+    >
+      <Heading>{title}</Heading>
+    </a>
+  </div>
+  {excerpt && <p style="text-align:justify;font-size:0.9rem;line-height:1.6;">{excerpt}</p>}
+</li>

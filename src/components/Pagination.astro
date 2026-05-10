@@ -1,0 +1,42 @@
+---
+import LinkButton from "./LinkButton.astro";
+
+type Props = {
+  prevUrl?: string | null;
+  nextUrl?: string | null;
+  currentPage: number;
+};
+
+const { prevUrl, nextUrl, currentPage } = Astro.props;
+const hasPagination = prevUrl || nextUrl;
+---
+
+{
+  hasPagination && (
+    <nav
+      class="mt-auto mb-8 flex justify-center"
+      role="navigation"
+      aria-label="Pagination Navigation"
+    >
+      <LinkButton
+        disabled={!prevUrl}
+        href={prevUrl ?? "#"}
+        class:list={["me-4 select-none", { "opacity-50": !prevUrl }]}
+        aria-label="前のページへ"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="inline-block rtl:rotate-180" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        前へ
+      </LinkButton>
+      <span class="px-2">{currentPage}</span>
+      <LinkButton
+        disabled={!nextUrl}
+        href={nextUrl ?? "#"}
+        class:list={["ms-4 select-none", { "opacity-50": !nextUrl }]}
+        aria-label="次のページへ"
+      >
+        次へ
+        <svg xmlns="http://www.w3.org/2000/svg" class="inline-block rtl:rotate-180" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </LinkButton>
+    </nav>
+  )
+}

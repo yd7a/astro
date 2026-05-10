@@ -1,0 +1,45 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+const currentYear = new Date().getFullYear();
+
+type Props = {
+  noMarginTop?: boolean;
+} & HTMLAttributes<"footer">;
+
+const { noMarginTop = false, class: className, ...attrs } = Astro.props;
+---
+
+<footer
+  class:list={["", { "mt-auto": !noMarginTop }, className]}
+  {...attrs}
+>
+  <div
+    class:list={[
+      "py-3 sm:py-2",
+      "border-t border-border",
+      "flex flex-col items-center justify-center sm:flex-row gap-4",
+    ]}
+  >
+    <div class="my-4 flex flex-col items-center whitespace-nowrap sm:flex-row">
+      <span style="font-size:0.8em;color:var(--color-foreground, #333);">
+        <a href="/">&copy; {currentYear}　統一教会2世清算連絡会</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+  document.querySelectorAll('.tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const index = Number(tab.dataset.index);
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', i === index);
+      });
+      document.querySelectorAll('.panel').forEach((p, i) => {
+        p.classList.toggle('active', i === index);
+      });
+    });
+  });
+</script>

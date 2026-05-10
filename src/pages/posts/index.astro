@@ -1,0 +1,38 @@
+---
+import { getCollection } from "astro:content";
+import Base from "@/layouts/Base.astro";
+import Card from "@/components/Card.astro";
+import Pagination from "@/components/Pagination.astro";
+import { SITE } from "@/config";
+
+const allPosts = await getCollection("posts", ({ data }) => !data.draft);
+const sortedPosts = allPosts.sort((a, b) =>
+  new Date(b.data.pubDatetime).getTime() - new Date(a.data.pubDatetime).getTime()
+);
+
+const page = Number(Astro.url.searchParams.get("page") ?? "1");
+const perPage = SITE.postPerPage;
+const start = (page - 1) * perPage;
+const paginatedPosts = sortedPosts.slice(start, start + perPage);
+
+const prevUrl = page > 1 ? (page === 2 ? "/posts/" : `/posts/?page=${page - 1}`) : null;
+const nextUrl = start + perPage < sortedPosts.length ? `/posts/?page=${page + 1}` : null;
+---
+
+<Base title={`投稿一覧 | ${SITE.title}`}>
+  <div class="app-layout pb-4">
+    <h1 class="text-2xl font-semibold sm:text-3xl mt-8 mb-2">投稿一覧</h1>
+    <p class="mt-2 mb-6 italic">すべての投稿</p>
+    <ul>
+      {paginatedPosts.map((post) => (
+        <Card
+          title={post.data.title}
+          excerpt={post.data.excerpt}
+          pubDatetime={post.data.pubDatetime}
+          href={`/posts/${post.id}`}
+        />
+      ))}
+    </ul>
+  </div>
+  <Pagination prevUrl={prevUrl} nextUrl={nextUrl} currentPage={page} />
+</Base>

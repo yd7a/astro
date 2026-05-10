@@ -1,0 +1,107 @@
+---
+import Datetime from "@/components/Datetime.astro";
+
+interface Props {
+  title: string;
+  pubDatetime?: Date | string | null;
+  modDatetime?: Date | string | null;
+  hideDate?: boolean;
+  icon?: string | null;
+}
+
+const { title, pubDatetime, modDatetime, hideDate = false, icon } = Astro.props;
+
+const { readFile } = await import("fs/promises");
+
+let svgContent = "";
+if (icon) {
+  try {
+    svgContent = await readFile(`./public${icon}`, "utf-8");
+  } catch {}
+}
+if (!svgContent) {
+  try {
+    svgContent = await readFile("./public/astropaper-icon.svg", "utf-8");
+  } catch {}
+}
+
+let shareIconSvg = "";
+try {
+  shareIconSvg = await readFile("./public/share-icon.svg", "utf-8");
+} catch {}
+---
+
+<a href="/" id="home-hint" class="block mb-4 text-sm transition-opacity duration-200 text-accent" style="opacity:0;pointer-events:none;">&laquo; ホームに戻る</a>
+<div class="flex gap-4 items-start group" id="article-header-area">
+  {svgContent && (
+    <a href="/" class="w-14 h-14 mt-0 shrink-0 article-icon" set:html={svgContent} />
+  )}
+  <div style="margin-left:-5px;">
+    <a href="/" class="article-title">{title}</a>
+    {!hideDate && pubDatetime && (
+      <div class="my-2 flex items-center gap-2 ml-0.5">
+        <button id="share-btn" class="share-btn" aria-label="URLをコピー">
+          {shareIconSvg
+            ? <span class="share-icon" set:html={shareIconSvg} />
+            : <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          }
+          <span id="share-label"></span>
+        </button>
+        <Datetime pubDatetime={pubDatetime} modDatetime={modDatetime} size="sm" />
+      </div>
+    )}
+  </div>
+</div>
+
+<script is:inline data-astro-rerun>
+  function initHomeHint() {
+    if (window.matchMedia("(hover: none)").matches) return;
+    const hint = document.getElementById("home-hint");
+    const triggers = [document.querySelector(".article-icon"), document.querySelector(".article-title")];
+    triggers.forEach(el => {
+      if (!el || !hint) return;
+      el.addEventListener("mouseenter", () => {
+        hint.style.opacity = "1";
+        hint.style.pointerEvents = "auto";
+      });
+      el.addEventListener("mouseleave", () => {
+        hint.style.opacity = "0";
+        hint.style.pointerEvents = "none";
+      });
+    });
+  }
+  document.addEventListener("astro:page-load", initHomeHint);
+</script>
+
+<script is:inline data-astro-rerun>
+  function initShareBtn() {
+    const btn = document.getElementById("share-btn");
+    const label = document.getElementById("share-label");
+    if (!btn || !label) return;
+    btn.addEventListener("click", () => {
+      const url = location.href;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          label.textContent = "URLをコピーしました";
+          setTimeout(() => { label.textContent = ""; }, 2000);
+        }).catch(() => fallbackCopy(url));
+      } else {
+        fallbackCopy(url);
+      }
+      function fallbackCopy(text) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        label.textContent = "URLをコピーしました";
+        setTimeout(() => { label.textContent = ""; }, 2000);
+      }
+    });
+  }
+  document.addEventListener("astro:page-load", initShareBtn);
+</script>

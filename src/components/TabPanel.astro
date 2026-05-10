@@ -1,0 +1,9 @@
+---
+interface Props {
+  heading: string;
+}
+const { heading } = Astro.props;
+---
+<div class="tab-panel-item" data-heading={heading}>
+  <slot />
+</div>

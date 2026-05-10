@@ -1,0 +1,29 @@
+---
+import LinkButton from "./LinkButton.astro";
+import { SITE } from "@/config";
+---
+
+{SITE.showBackButton && (
+  <div class="app-layout" style="margin-bottom:0px;margin-top:20px;text-align:right;">
+    <LinkButton
+      id="back-button"
+      href="/"
+      class="focus-outline -ms-2 mt-8 mb-2 hover:text-foreground/75"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="inline-block size-4 rtl:rotate-180" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      <span style="font-size:0.9rem;margin-left:2px;">{SITE.title}</span>
+    </LinkButton>
+  </div>
+)}
+
+<script>
+  function updateGoBackUrl() {
+    const backButton = document.querySelector<HTMLAnchorElement>("#back-button");
+    const backUrl = sessionStorage.getItem("backUrl");
+    if (backUrl && backButton) {
+      backButton.href = backUrl;
+    }
+  }
+  document.addEventListener("astro:page-load", updateGoBackUrl);
+  updateGoBackUrl();
+</script>

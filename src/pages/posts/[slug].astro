@@ -1,0 +1,141 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "@/layouts/Base.astro";
+import BackButton from "@/components/BackButton.astro";
+import ArticleHeader from "@/components/ArticleHeader.astro";
+import Datetime from "@/components/Datetime.astro";
+import Tag from "@/components/Tag.astro";
+import { SITE } from "@/config";
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<Base
+  title={post.data.title}
+  description={post.data.excerpt}
+  pubDatetime={post.data.pubDatetime}
+  modDatetime={post.data.modDatetime}
+  author={SITE.author}
+  type="article"
+  scrollSmooth={true}
+>
+  <BackButton />
+  <main id="main-content" class:list={["app-layout pb-2", { "mt-8": !SITE.showBackButton }]}>
+    <ArticleHeader
+      title={post.data.title}
+      pubDatetime={post.data.pubDatetime}
+      modDatetime={post.data.modDatetime}
+    />
+    <article id="article" class="app-prose mt-8 w-full max-w-app">
+      <Content />
+    </article>
+    {post.data.tags.length > 0 && (
+      <ul class="mt-4 mb-8 flex flex-wrap gap-4 sm:my-8">
+        {post.data.tags.map((tag) => (
+          <Tag tag={tag} tagName={tag} size="sm" />
+        ))}
+      </ul>
+    )}
+  </main>
+</Base>
+
+<script is:inline data-astro-rerun>
+  function createProgressBar() {
+    const progressContainer = document.createElement("div");
+    progressContainer.className = "progress-container fixed top-0 z-10 h-1 w-full bg-background";
+    const progressBar = document.createElement("div");
+    progressBar.className = "progress-bar h-1 w-0 bg-accent";
+    progressBar.id = "myBar";
+    progressContainer.appendChild(progressBar);
+    document.body.appendChild(progressContainer);
+  }
+  createProgressBar();
+  function updateScrollProgress() {
+    document.addEventListener("scroll", () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      const myBar = document.getElementById("myBar");
+      if (myBar) myBar.style.width = scrolled + "%";
+    });
+  }
+  updateScrollProgress();
+  document.addEventListener("astro:after-swap", () =>
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" })
+  );
+
+  function initTabPanels() {
+    const article = document.getElementById("article");
+    if (!article) return;
+    const items = Array.from(article.querySelectorAll(".tab-panel-item"));
+    if (items.length === 0) return;
+    const groups = [];
+    let current = [];
+    for (const item of items) {
+      if (current.length === 0 || item.previousElementSibling?.classList.contains("tab-panel-item")) {
+        current.push(item);
+      } else {
+        if (current.length) groups.push(current);
+        current = [item];
+      }
+    }
+    if (current.length) groups.push(current);
+    for (const group of groups) {
+      const wrapper = document.createElement("div");
+      const tabBar = document.createElement("div");
+      tabBar.className = "tabs";
+      tabBar.style.position = "sticky";
+      tabBar.style.top = "0";
+      tabBar.style.backgroundColor = "var(--color-background)";
+      tabBar.style.zIndex = "10";
+      const panels = group.map((item, i) => {
+        const tab = document.createElement("h1");
+        tab.className = "tab" + (i === 0 ? " active" : "");
+        tab.dataset.index = String(i);
+        tab.textContent = item.dataset.heading || `タブ ${i + 1}`;
+        tabBar.appendChild(tab);
+        const panel = document.createElement("div");
+        panel.className = "panel" + (i === 0 ? " active" : "");
+        panel.innerHTML = item.innerHTML;
+        return panel;
+      });
+      const sentinel = document.createElement("div");
+      sentinel.style.height = "1px";
+      wrapper.appendChild(sentinel);
+      wrapper.appendChild(tabBar);
+      panels.forEach(p => wrapper.appendChild(p));
+      const observer = new IntersectionObserver(([entry]) => {
+        tabBar.classList.toggle("is-sticky", !entry.isIntersecting);
+      }, { threshold: 0 });
+      observer.observe(sentinel);
+      if (group.length > 1) {
+        tabBar.querySelectorAll(".tab").forEach((tab) => {
+          tab.addEventListener("click", () => {
+            const idx = Number(tab.dataset.index);
+            const wasSticky = tabBar.classList.contains("is-sticky");
+            tabBar.querySelectorAll(".tab").forEach((t, i) => t.classList.toggle("active", i === idx));
+            panels.forEach((p, i) => p.classList.toggle("active", i === idx));
+            if (wasSticky) {
+              requestAnimationFrame(() => {
+                const offset = tabBar.getBoundingClientRect().top + window.scrollY;
+                window.scrollTo({ top: offset, behavior: "instant" });
+              });
+            }
+          });
+        });
+      }
+      group[0].before(wrapper);
+      group.forEach(item => item.remove());
+    }
+  }
+  initTabPanels();
+  document.addEventListener("astro:after-swap", initTabPanels);
+</script>

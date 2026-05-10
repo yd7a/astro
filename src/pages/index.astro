@@ -1,0 +1,76 @@
+---
+import { getCollection } from "astro:content";
+import Base from "@/layouts/Base.astro";
+import Card from "@/components/Card.astro";
+import LinkButton from "@/components/LinkButton.astro";
+import { SITE } from "@/config";
+
+const posts = await getCollection("posts", ({ data }) => !data.draft);
+const sortedPosts = posts.sort((a, b) =>
+  new Date(b.data.pubDatetime).getTime() - new Date(a.data.pubDatetime).getTime()
+);
+const recentPosts = sortedPosts.slice(0, SITE.postPerIndex);
+---
+
+<Base hideHeader>
+  <main id="main-content" data-layout="index" class="app-layout">
+    <section id="hero" class="pt-8 pb-6 border-border" style="margin-top:10px;">
+      <div style="text-align: center;">
+        <h1 class="my-5 inline-block">
+          <span style="display:flex; align-items:center; gap:10px;">
+            <span style="display:flex; flex-direction:column;">
+              <span style="font-size:31px;font-family: 'Noto Serif JP', sans-serif;font-weight:800;">統一教会2世清算連絡会</span>
+            </span>
+          </span>
+        </h1>
+      </div>
+      <div class="text-[1.1rem] font-semibold flex flex-wrap justify-center gap-x-6 -mt-2.5 mb-7.5 text-slate-700" style="font-family: 'LINE Seed JP', sans-serif;">
+        <a href="/pages/about" class="hover:underline underline-offset-5 decoration-2">会について</a>
+        <a href="/pages/info" class="hover:underline underline-offset-5 decoration-2">呼びかけ</a>
+        <a href="/pages/contact" class="hover:underline underline-offset-5 decoration-2">連絡</a>
+        <a href="/pages/resources" class="hover:underline underline-offset-5 decoration-2">資料室</a>
+      </div>
+
+      <div style="display:flex;gap:16px;margin-left:5px;">
+        <a href="mailto:contact+subscribe@seisan.insaem.jp?subject=統一教会2世清算連絡会 ニュースレター&body=* 本メールを送信して購読申込%0A%0A* 申込確認メールが届かない場合は迷惑メールボックスをご確認ください%0A" style="display:flex; align-items:center;">
+          <div class="mail-btn">
+            <span><span style="display:inline-block;">メール</span><span style="display:inline-block;">購読</span></span>
+          </div>
+        </a>
+        <div style="font-size:0.9rem;padding:0px 10px 0px 5px;text-align:justify;">
+          本会は、統一教会2世の被害や法人の解散に伴う清算手続に関して、当事者や関係者間の情報共有に寄与することを目的として活動しています。
+        </div>
+      </div>
+    </section>
+
+    {recentPosts.length > 0 && (
+      <section id="recent-posts" class="pt-6 pb-6" style="padding:0px 10px">
+        <h2 class="text-lg font-semibold tracking-wide" style="margin-top:15px;color:#555555;border-bottom:0.5px;border-style:solid;padding-bottom:8px;border-color:#999999;padding-left:4px;">
+          <LinkButton href="/posts/">お知らせ</LinkButton>
+          <a target="_blank" href="/rss.xml" class="inline-block ms-2" aria-label="RSSフィード" title="RSSフィード">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" style="margin-top:-8px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="scale-125 stroke-accent rtl:-rotate-90 inline-block"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
+            <span class="sr-only">RSSフィード</span>
+          </a>
+        </h2>
+        <ul>
+          {recentPosts.map((post) => (
+            <Card
+              variant="h3"
+              title={post.data.title}
+              excerpt={post.data.excerpt}
+              pubDatetime={post.data.pubDatetime}
+              href={`/posts/${post.id}`}
+            />
+          ))}
+        </ul>
+      </section>
+    )}
+  </main>
+</Base>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const indexLayout = (document.querySelector("#main-content") as HTMLElement)?.dataset?.layout;
+    if (indexLayout) sessionStorage.setItem("backUrl", "/");
+  });
+</script>
